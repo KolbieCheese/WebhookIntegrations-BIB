@@ -27,6 +27,9 @@ public class ConfigMigrator {
                 case 3:
                     toVersion4(plugin);
                     break;
+                case 4:
+                    toVersion5(plugin);
+                    break;
             }
             current++;
         }
@@ -102,5 +105,24 @@ public class ConfigMigrator {
         plugin.reloadConfig();
 
         plugin.getLogger().log(Level.INFO, "Config migrated to version 4!");
+    }
+
+    public static void toVersion5(@NotNull JavaPlugin plugin) {
+        plugin.getConfig().set("clansWebhook.enabled", false);
+        plugin.getConfig().set("clansWebhook.endpoint", "https://example.com/api/clans-webhook");
+        plugin.getConfig().set("clansWebhook.secret", "replace-me");
+        plugin.getConfig().set("clansWebhook.fullSyncOnStartup", true);
+        plugin.getConfig().set("clansWebhook.includeMembers", true);
+        plugin.getConfig().set("clansWebhook.includeBanner", true);
+        plugin.getConfig().set("clansWebhook.connectTimeoutMillis", 5000);
+        plugin.getConfig().set("clansWebhook.readTimeoutMillis", 5000);
+        plugin.getConfig().set("clansWebhook.retryAttempts", 5);
+        plugin.getConfig().set("clansWebhook.retryDelaySeconds", 30);
+
+        plugin.getConfig().set("config-version", 5);
+        plugin.saveConfig();
+        plugin.reloadConfig();
+
+        plugin.getLogger().log(Level.INFO, "Config migrated to version 5!");
     }
 }

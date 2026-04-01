@@ -1,5 +1,5 @@
 # don't change this, you'll most likely break your config
-config-version: 4
+config-version: 5
 
 check-for-updates: true
 auto-update: true
@@ -8,6 +8,30 @@ auto-update: true
 # This cannot be empty!
 webhooks:
   main: ""
+
+# Lightweight Clans webhook bridge. This posts clan snapshots and delete events to a regular JSON endpoint.
+# Requires the LightweightClans plugin to be installed on the same server.
+clansWebhook:
+  # Master switch for the Lightweight Clans bridge.
+  enabled: false
+  # The HTTP endpoint that will receive clan JSON payloads.
+  endpoint: "https://example.com/api/clans-webhook"
+  # Shared secret used for the X-Webhook-Signature HMAC SHA-256 header.
+  secret: "replace-me"
+  # Send one clan.sync payload per clan during startup so the website can rebuild its full state.
+  fullSyncOnStartup: true
+  # Include the exported clan member snapshot list in each non-delete payload.
+  includeMembers: true
+  # Include the exported clan banner snapshot in each non-delete payload.
+  includeBanner: true
+  # HTTP connect timeout for the clans webhook sender.
+  connectTimeoutMillis: 5000
+  # HTTP read timeout for the clans webhook sender.
+  readTimeoutMillis: 5000
+  # Number of retry attempts after the initial failed delivery.
+  retryAttempts: 5
+  # Delay between retry attempts.
+  retryDelaySeconds: 30
 
 # Whether to send a quit message when a player gets kicked. false disables his behavior
 send-quit-when-kicked: false

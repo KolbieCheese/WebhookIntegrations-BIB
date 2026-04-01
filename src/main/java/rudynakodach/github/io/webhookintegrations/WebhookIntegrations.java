@@ -25,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import rudynakodach.github.io.webhookintegrations.Commands.*;
+import rudynakodach.github.io.webhookintegrations.Clans.LightweightClansBridge;
 import rudynakodach.github.io.webhookintegrations.Events.Actions.OpJoinEvent;
 import rudynakodach.github.io.webhookintegrations.Events.Game.*;
 import rudynakodach.github.io.webhookintegrations.Modules.LanguageConfiguration;
@@ -46,7 +47,7 @@ import java.util.logging.Level;
 public final class WebhookIntegrations extends JavaPlugin {
     public static boolean isLatest = true;
     public static final int currentBuildNumber = 67;
-    public static final int currentConfigVersion = 4;
+    public static final int currentConfigVersion = 5;
 
     @Override
     public void onEnable() {
@@ -173,6 +174,8 @@ public final class WebhookIntegrations extends JavaPlugin {
 
         PlayerCountChangeListener playerCountChangeListener = new PlayerCountChangeListener(this);
         getServer().getPluginManager().registerEvents(playerCountChangeListener,this);
+
+        new LightweightClansBridge(this).enable();
 
         getLogger().log(Level.INFO, language.getLocalizedString("onStart.eventRegisterFinish"));
 

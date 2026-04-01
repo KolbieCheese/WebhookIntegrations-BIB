@@ -11,6 +11,33 @@
 
 `webhooks`: <ins>where all webhooks are paired with their IDs
 
+`clansWebhook`: Lightweight Clans JSON webhook bridge settings | section
+
+```yaml
+clansWebhook:
+  enabled: false
+  endpoint: "https://example.com/api/clans-webhook"
+  secret: "replace-me"
+  fullSyncOnStartup: true
+  includeMembers: true
+  includeBanner: true
+  connectTimeoutMillis: 5000
+  readTimeoutMillis: 5000
+  retryAttempts: 5
+  retryDelaySeconds: 30
+```
+
+- `clansWebhook.enabled`: whether the Lightweight Clans bridge is active | bool
+- `clansWebhook.endpoint`: HTTP endpoint that receives clan JSON payloads | string
+- `clansWebhook.secret`: HMAC secret used for `X-Webhook-Signature` | string
+- `clansWebhook.fullSyncOnStartup`: whether to send one `clan.sync` payload per clan during startup | bool
+- `clansWebhook.includeMembers`: whether to include the exported member list in non-delete payloads | bool
+- `clansWebhook.includeBanner`: whether to include the exported banner object in non-delete payloads | bool
+- `clansWebhook.connectTimeoutMillis`: HTTP connect timeout | int
+- `clansWebhook.readTimeoutMillis`: HTTP read timeout | int
+- `clansWebhook.retryAttempts`: retry count after the initial failed delivery | int
+- `clansWebhook.retryDelaySeconds`: delay between retries | int
+
 `send-quit-when-kicked`: if the player gets kicked, do we send the quit message? | bool
 
 `timeout-delay`: the time in ticks that we need to wait before sending any events, used to prevent spam when players rejoining | int

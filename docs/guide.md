@@ -19,6 +19,60 @@ WebhookIntegrations has multi-webhook support, meaning you can set a different w
 
 Each webhook url has its own ID, the default being called `main`. You can add more webhook URLs by using `/seturl ... id` where `...` is your URL and `id` is your id.
 
+## Lightweight Clans webhook setup
+
+If you want clan lifecycle data pushed to a website or other JSON endpoint:
+
+1. Install `LightweightClans` on the same Paper server.
+2. Enable the `clansWebhook` section in `config.yml`.
+3. Set `clansWebhook.endpoint` to your HTTP endpoint.
+4. Set `clansWebhook.secret` to the shared HMAC secret your receiver expects.
+5. Reload or restart the server.
+
+Recommended config:
+
+```yml
+clansWebhook:
+  enabled: true
+  endpoint: "https://example.com/api/clans-webhook"
+  secret: "replace-me"
+  fullSyncOnStartup: true
+  includeMembers: true
+  includeBanner: true
+  connectTimeoutMillis: 5000
+  readTimeoutMillis: 5000
+  retryAttempts: 5
+  retryDelaySeconds: 30
+```
+
+What gets sent:
+
+- Startup full sync: `clan.sync`
+- Clan create: `clan.created`
+- Clan update: `clan.updated`
+- Clan delete: `clan.deleted`
+- Member join: `clan.member_joined`
+- Member leave: `clan.member_left`
+- Member kick: `clan.member_kicked`
+- President transfer: `clan.president_transferred`
+- Banner update: `clan.banner_updated`
+
+Headers added to every clans webhook request:
+
+- `Content-Type: application/json`
+- `X-Webhook-Source: lightweight-clans`
+- `X-Webhook-Event: <event name>`
+- `X-Webhook-Timestamp: <payload occurredAt>`
+- `X-Webhook-Signature: sha256=<hmac>`
+
+The signature is computed from:
+
+```text
+timestamp + "." + rawRequestBody
+```
+
+If `LightweightClansApi` is not registered in Bukkit `ServicesManager`, or if `clansWebhook.endpoint` is blank, WebhookIntegrations disables only the clans bridge and leaves the rest of the plugin running.
+
 ## Editing embeds
 WebhookIntegrations has already some basic embeds that might suit your needs, but you can always change them however you want.
 

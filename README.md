@@ -23,6 +23,7 @@ Get the plugin from [SpigotMC](https://www.spigotmc.org/resources/webhookintegra
 - Multi-webhook support
 - Highly configurable JSON messages with placeholders
 - PlaceholderAPI implementation
+- Lightweight Clans webhook bridge with startup sync and lifecycle event forwarding
 - configurable permission system
 - chat logging
 - configurable censoring system
@@ -30,3 +31,102 @@ Get the plugin from [SpigotMC](https://www.spigotmc.org/resources/webhookintegra
 - \+ many more
 
 #### Like the plugin? Consider leaving a review on [Spigot](https://www.spigotmc.org/resources/1-17-webhookintegrations-simplifying-discord-integrations.107688/)!
+
+## Lightweight Clans bridge
+
+WebhookIntegrations can now forward Lightweight Clans snapshots to a regular JSON webhook endpoint.
+
+- Dependency: install `LightweightClans` on the same Paper server; it is not bundled into the WebhookIntegrations jar
+- Discovery: the bridge resolves `LightweightClansApi` through Bukkit `ServicesManager`
+- Startup sync: `clan.sync`
+- Lifecycle events:
+  - `clan.created`
+  - `clan.updated`
+  - `clan.deleted`
+  - `clan.member_joined`
+  - `clan.member_left`
+  - `clan.member_kicked`
+  - `clan.president_transferred`
+  - `clan.banner_updated`
+
+Example `config.yml` section:
+
+```yml
+clansWebhook:
+  enabled: true
+  endpoint: "https://example.com/api/clans-webhook"
+  secret: "replace-me"
+  fullSyncOnStartup: true
+  includeMembers: true
+  includeBanner: true
+  connectTimeoutMillis: 5000
+  readTimeoutMillis: 5000
+  retryAttempts: 5
+  retryDelaySeconds: 30
+```
+
+Every request is sent as `application/json` with these headers:
+
+- `X-Webhook-Source: lightweight-clans`
+- `X-Webhook-Event: <event name>`
+- `X-Webhook-Timestamp: <same ISO-8601 timestamp used in the payload>`
+- `X-Webhook-Signature: sha256=<hmac>`
+
+The signature payload is:
+
+```text
+timestamp + "." + rawRequestBody
+```
+
+Non-delete payload example:
+
+```json
+{
+  "event": "clan.updated",
+  "occurredAt": "2026-03-31T21:10:15Z",
+  "changedFields": ["banner", "memberCount"],
+  "clan": {
+    "id": 42,
+    "name": "Crimson Knights",
+    "normalizedName": "crimson knights",
+    "tag": "CK",
+    "tagColor": "#ffaa00",
+    "description": "PvP and building clan.",
+    "presidentUuid": "11111111-1111-1111-1111-111111111111",
+    "presidentName": "Kolbie",
+    "memberCount": 12,
+    "members": [
+      {
+        "playerUuid": "11111111-1111-1111-1111-111111111111",
+        "lastKnownName": "Kolbie",
+        "role": "PRESIDENT",
+        "joinedAt": "2026-03-31T19:20:00Z"
+      }
+    ],
+    "banner": {
+      "baseMaterial": "minecraft:black_banner",
+      "baseColor": "black",
+      "patterns": [
+        { "patternId": "minecraft:border", "colorId": "red" },
+        { "patternId": "minecraft:stripe_center", "colorId": "white" }
+      ]
+    },
+    "createdAt": "2026-03-31T19:15:30Z",
+    "updatedAt": "2026-03-31T21:10:15Z"
+  }
+}
+```
+
+Delete payload example:
+
+```json
+{
+  "event": "clan.deleted",
+  "occurredAt": "2026-03-31T21:12:00Z",
+  "clan": {
+    "id": 42,
+    "name": "Crimson Knights",
+    "normalizedName": "crimson knights"
+  }
+}
+```
