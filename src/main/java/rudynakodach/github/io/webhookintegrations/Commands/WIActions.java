@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import rudynakodach.github.io.webhookintegrations.AutoUpdater;
+import rudynakodach.github.io.webhookintegrations.Clans.LightweightClansBridge;
 import rudynakodach.github.io.webhookintegrations.Modules.*;
 import rudynakodach.github.io.webhookintegrations.Utils.Config.ConfigBackupManager;
 import rudynakodach.github.io.webhookintegrations.WebhookActions;
@@ -103,6 +104,16 @@ public class WIActions implements CommandExecutor, TabCompleter {
                     } else if(args[1].equalsIgnoreCase("loadbackup") && args.length >= 3) {
                         return loadBackup(commandSender, args);
                     }
+                } else if(args[0].equalsIgnoreCase("clans")) {
+                    if(args.length < 2) {
+                        commandSender.sendMessage("/wi clans status|sync");
+                        return true;
+                    }
+                    if(args[1].equalsIgnoreCase("status")) {
+                        return clansStatus(commandSender);
+                    } else if(args[1].equalsIgnoreCase("sync")) {
+                        return clansSync(commandSender);
+                    }
                 }
                 if(args.length >= 2) {
                     if(args[0].equalsIgnoreCase("template") && args[1].equalsIgnoreCase("send")) {
@@ -128,6 +139,7 @@ public class WIActions implements CommandExecutor, TabCompleter {
                 suggestions.add("reload");
                 suggestions.add("update");
                 suggestions.add("config");
+                suggestions.add("clans");
                 suggestions.add("template");
             } else if (args.length == 2) {
                 if(args[0].equalsIgnoreCase("reset")) {
@@ -140,6 +152,9 @@ public class WIActions implements CommandExecutor, TabCompleter {
                     suggestions.add("loadbackup");
                 } else if(args[0].equalsIgnoreCase("template")) {
                     suggestions.add("send");
+                } else if(args[0].equalsIgnoreCase("clans")) {
+                    suggestions.add("status");
+                    suggestions.add("sync");
                 }
             } else if(args.length == 3) {
                 if(args[0].equalsIgnoreCase("config")) {
@@ -191,6 +206,62 @@ public class WIActions implements CommandExecutor, TabCompleter {
         }
 
         WebhookIntegrationsModule.resetAll();
+
+        return true;
+    }
+
+    private boolean clansStatus(CommandSender commandSender) {
+        if (!commandSender.hasPermission("webhookintegrations.clans.status")) {
+            commandSender.sendMessage(
+                    ChatColor.translateAlternateColorCodes('&',
+                            LanguageConfiguration.get().getLocalizedString("no-permission"))
+            );
+            return true;
+        }
+
+        if (!(plugin instanceof WebhookIntegrations webhookIntegrations)) {
+            commandSender.sendMessage(ChatColor.RED + "Lightweight Clans bridge status is unavailable.");
+            return true;
+        }
+
+        LightweightClansBridge.BridgeStatus status = webhookIntegrations.describeLightweightClansBridge();
+        String periodicStatus = status.periodicFullSyncEnabled()
+                ? ChatColor.GREEN + "every " + status.periodicFullSyncSeconds() + " seconds"
+                : ChatColor.RED + "disabled";
+
+        commandSender.sendMessage(ChatColor.GOLD + "Lightweight Clans bridge status:");
+        commandSender.sendMessage(ChatColor.GRAY + "- Global webhook switch: " + colorBoolean(status.masterEnabled()));
+        commandSender.sendMessage(ChatColor.GRAY + "- Clans bridge enabled: " + colorBoolean(status.clansWebhookEnabled()));
+        commandSender.sendMessage(ChatColor.GRAY + "- Endpoint configured: " + colorBoolean(status.endpointConfigured()));
+        commandSender.sendMessage(ChatColor.GRAY + "- LightweightClans API available: " + colorBoolean(status.apiAvailable()));
+        commandSender.sendMessage(ChatColor.GRAY + "- Bridge active: " + colorBoolean(status.active()));
+        commandSender.sendMessage(ChatColor.GRAY + "- Startup full sync: " + colorBoolean(status.fullSyncOnStartup()));
+        commandSender.sendMessage(ChatColor.GRAY + "- Periodic full sync: " + periodicStatus + ChatColor.RESET);
+        return true;
+    }
+
+    private boolean clansSync(CommandSender commandSender) {
+        if (!commandSender.hasPermission("webhookintegrations.clans.sync")) {
+            commandSender.sendMessage(
+                    ChatColor.translateAlternateColorCodes('&',
+                            LanguageConfiguration.get().getLocalizedString("no-permission"))
+            );
+            return true;
+        }
+
+        if (!(plugin instanceof WebhookIntegrations webhookIntegrations)) {
+            commandSender.sendMessage(ChatColor.RED + "Lightweight Clans bridge sync is unavailable.");
+            return true;
+        }
+
+        switch (webhookIntegrations.queueLightweightClansManualSync()) {
+            case QUEUED -> commandSender.sendMessage(ChatColor.GREEN + "Queued a manual Lightweight Clans full sync. Check the console for sync and delivery logs.");
+            case ALREADY_RUNNING -> commandSender.sendMessage(ChatColor.YELLOW + "A Lightweight Clans full sync is already running.");
+            case GLOBALLY_DISABLED -> commandSender.sendMessage(ChatColor.RED + "WebhookIntegrations is globally disabled (isEnabled=false).");
+            case CLANS_WEBHOOK_DISABLED -> commandSender.sendMessage(ChatColor.RED + "The clans bridge is disabled (clansWebhook.enabled=false).");
+            case MISSING_ENDPOINT -> commandSender.sendMessage(ChatColor.RED + "The clans bridge endpoint is blank. Set clansWebhook.endpoint first.");
+            case API_UNAVAILABLE -> commandSender.sendMessage(ChatColor.RED + "The LightweightClans API is not available. Check plugin load order and startup logs.");
+        }
 
         return true;
     }

@@ -22,6 +22,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import rudynakodach.github.io.webhookintegrations.Commands.*;
@@ -189,7 +190,9 @@ public final class WebhookIntegrations extends JavaPlugin {
         Objects.requireNonNull(getCommand("send")).setExecutor(sendToWebhookCommand);
 
         WIActions resetConfig = new WIActions(this);
-        Objects.requireNonNull(getCommand("wi")).setExecutor(resetConfig);
+        PluginCommand wiCommand = Objects.requireNonNull(getCommand("wi"));
+        wiCommand.setExecutor(resetConfig);
+        wiCommand.setTabCompleter(resetConfig);
 
         getLogger().log(Level.INFO, language.getLocalizedString("onStart.commandRegisterFinish"));
 
@@ -223,6 +226,26 @@ public final class WebhookIntegrations extends JavaPlugin {
         getLogger().log(Level.INFO, "goodb ye");
     }
 
+    public LightweightClansBridge.BridgeStatus describeLightweightClansBridge() {
+        if (clansBridge != null) {
+            return clansBridge.describeStatus();
+        }
+
+        return new LightweightClansBridge.BridgeStatus(
+                getConfig().getBoolean("isEnabled", true),
+                getConfig().getBoolean("clansWebhook.enabled", false),
+                !Objects.requireNonNullElse(getConfig().getString("clansWebhook.endpoint"), "").isBlank(),
+                false,
+                false,
+                getConfig().getBoolean("clansWebhook.fullSyncOnStartup", true),
+                getConfig().getBoolean("clansWebhook.periodicFullSyncEnabled", false),
+                getConfig().getInt("clansWebhook.periodicFullSyncSeconds", 7200)
+        );
+    }
+
+    public LightweightClansBridge.ManualSyncResult queueLightweightClansManualSync() {
+        return clansBridge == null ? LightweightClansBridge.ManualSyncResult.API_UNAVAILABLE : clansBridge.queueManualFullSync();
+    }
     public void reloadLightweightClansBridge() {
         if (clansBridge != null) {
             clansBridge.disable();

@@ -18,3 +18,10 @@ commands:
     permission: webhookintegrations.wi
     aliases:
       - "webhookintegrations"
+permissions:
+  webhookintegrations.clans.status:
+    description: Allows viewing Lightweight Clans bridge status.
+    default: op
+  webhookintegrations.clans.sync:
+    description: Allows queueing a manual Lightweight Clans full sync.
+    default: op

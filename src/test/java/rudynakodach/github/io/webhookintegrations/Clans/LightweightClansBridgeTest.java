@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -200,5 +201,101 @@ class LightweightClansBridgeTest {
 
         assertTrue(bridge.isActive());
         assertEquals(0, fullSyncScheduler.queuedTaskCount());
+    }
+
+    @Test
+    void manualFullSyncQueuesClanSnapshotsImmediately() {
+        ClansWebhookConfig config = new ClansWebhookConfig(
+                true,
+                "https://example.com/webhook",
+                "secret",
+                false,
+                false,
+                0,
+                true,
+                true,
+                5000,
+                5000,
+                0,
+                1
+        );
+        LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
+        PluginManager pluginManager = mock(PluginManager.class);
+        LightweightClansApi api = mock(LightweightClansApi.class);
+        LightweightClansTestSupport.RecordingScheduler deliveryScheduler = new LightweightClansTestSupport.RecordingScheduler();
+        LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
+
+        when(resolver.resolve()).thenReturn(Optional.of(api));
+        when(api.getAllClansAsync()).thenReturn(CompletableFuture.completedFuture(List.of(
+                LightweightClansTestSupport.clanSnapshot(),
+                LightweightClansTestSupport.renamedClanSnapshot()
+        )));
+
+        LightweightClansBridge bridge = new LightweightClansBridge(
+                LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                config,
+                resolver,
+                pluginManager,
+                new LightweightClansPayloadMapper(),
+                new LightweightClansWebhookSender(
+                        LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                        config,
+                        deliveryScheduler,
+                        transport,
+                        new LightweightClansWebhookSigner()
+                )
+        );
+
+        bridge.enable();
+
+        assertEquals(LightweightClansBridge.ManualSyncResult.QUEUED, bridge.queueManualFullSync());
+        assertEquals(2, deliveryScheduler.queuedTaskCount());
+
+        deliveryScheduler.runAll();
+
+        assertEquals(2, transport.requests().size());
+        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.sync\""));
+    }
+
+    @Test
+    void manualFullSyncCanRecoverAfterApiBecomesAvailableLater() {
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 0, true, true, 5000, 5000, 0, 1);
+        LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
+        PluginManager pluginManager = mock(PluginManager.class);
+        LightweightClansApi api = mock(LightweightClansApi.class);
+        LightweightClansTestSupport.RecordingScheduler deliveryScheduler = new LightweightClansTestSupport.RecordingScheduler();
+        LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
+        AtomicBoolean apiAvailable = new AtomicBoolean(false);
+
+        when(resolver.resolve()).thenAnswer(invocation -> apiAvailable.get() ? Optional.of(api) : Optional.empty());
+        when(api.getAllClansAsync()).thenReturn(CompletableFuture.completedFuture(List.of(
+                LightweightClansTestSupport.clanSnapshot(),
+                LightweightClansTestSupport.renamedClanSnapshot()
+        )));
+
+        LightweightClansBridge bridge = new LightweightClansBridge(
+                LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                config,
+                resolver,
+                pluginManager,
+                new LightweightClansPayloadMapper(),
+                new LightweightClansWebhookSender(
+                        LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                        config,
+                        deliveryScheduler,
+                        transport,
+                        new LightweightClansWebhookSigner()
+                )
+        );
+
+        bridge.enable();
+        assertFalse(bridge.isActive());
+
+        apiAvailable.set(true);
+        assertEquals(LightweightClansBridge.ManualSyncResult.QUEUED, bridge.queueManualFullSync());
+
+        deliveryScheduler.runAll();
+
+        assertEquals(2, transport.requests().size());
     }
 }

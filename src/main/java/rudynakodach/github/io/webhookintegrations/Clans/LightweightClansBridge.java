@@ -4,8 +4,8 @@ import io.github.maste.customclans.api.LightweightClansApi;
 import io.github.maste.customclans.api.model.ClanSnapshot;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -84,10 +84,18 @@ public class LightweightClansBridge {
         }
 
         if (!plugin.getConfig().getBoolean("isEnabled", true)) {
+            plugin.getLogger().log(
+                    Level.INFO,
+                    "Skipping Lightweight Clans webhook integration because WebhookIntegrations is globally disabled (isEnabled=false)."
+            );
             return;
         }
 
         if (!config.enabled()) {
+            plugin.getLogger().log(
+                    Level.INFO,
+                    "Skipping Lightweight Clans webhook integration because clansWebhook.enabled=false."
+            );
             return;
         }
 
@@ -106,7 +114,11 @@ public class LightweightClansBridge {
         pluginManager.registerEvents(listener, plugin);
         active = true;
 
-        plugin.getLogger().log(Level.INFO, "Lightweight Clans webhook integration enabled.");
+        plugin.getLogger().log(
+                Level.INFO,
+                "Lightweight Clans webhook integration enabled (startupSync={0}, periodicSync={1}, periodicSeconds={2}).",
+                new Object[]{config.fullSyncOnStartup(), config.hasPeriodicFullSync(), config.periodicFullSyncSeconds()}
+        );
 
         if (config.fullSyncOnStartup()) {
             queueFullSync(api.get(), "startup");
@@ -119,6 +131,42 @@ public class LightweightClansBridge {
 
     public boolean isActive() {
         return active;
+    }
+
+    public BridgeStatus describeStatus() {
+        return new BridgeStatus(
+                plugin.getConfig().getBoolean("isEnabled", true),
+                config.enabled(),
+                config.hasEndpoint(),
+                serviceResolver.resolve().isPresent(),
+                active,
+                config.fullSyncOnStartup(),
+                config.hasPeriodicFullSync(),
+                config.periodicFullSyncSeconds()
+        );
+    }
+
+    public ManualSyncResult queueManualFullSync() {
+        if (!plugin.getConfig().getBoolean("isEnabled", true)) {
+            return ManualSyncResult.GLOBALLY_DISABLED;
+        }
+
+        if (!config.enabled()) {
+            return ManualSyncResult.CLANS_WEBHOOK_DISABLED;
+        }
+
+        if (!config.hasEndpoint()) {
+            return ManualSyncResult.MISSING_ENDPOINT;
+        }
+
+        Optional<LightweightClansApi> api = serviceResolver.resolve();
+        if (api.isEmpty()) {
+            return ManualSyncResult.API_UNAVAILABLE;
+        }
+
+        return queueFullSync(api.get(), "manual")
+                ? ManualSyncResult.QUEUED
+                : ManualSyncResult.ALREADY_RUNNING;
     }
 
     public void disable() {
@@ -160,23 +208,25 @@ public class LightweightClansBridge {
         );
     }
 
-    private void queueFullSync(LightweightClansApi api, String trigger) {
+    private boolean queueFullSync(LightweightClansApi api, String trigger) {
         if (!fullSyncInProgress.compareAndSet(false, true)) {
             plugin.getLogger().log(
                     Level.FINE,
                     "Skipping Lightweight Clans {0} full sync because a previous full sync is still in progress.",
                     trigger
             );
-            return;
+            return false;
         }
 
-        if ("startup".equals(trigger)) {
-            plugin.getLogger().log(Level.INFO, "Starting Lightweight Clans startup full sync for clans webhook integration.");
-        }
+        plugin.getLogger().log(
+                Level.INFO,
+                "Starting Lightweight Clans {0} full sync for clans webhook integration.",
+                trigger
+        );
 
         api.getAllClansAsync().whenComplete((clans, throwable) -> {
             try {
-                if (!active) {
+                if (!active && !"manual".equals(trigger)) {
                     return;
                 }
 
@@ -186,9 +236,11 @@ public class LightweightClansBridge {
                 }
 
                 List<ClanSnapshot> allClans = clans == null ? List.of() : clans;
-                if ("startup".equals(trigger)) {
-                    plugin.getLogger().log(Level.INFO, "Queueing Lightweight Clans startup sync for " + allClans.size() + " clan(s).");
-                }
+                plugin.getLogger().log(
+                        Level.INFO,
+                        "Queueing Lightweight Clans {0} sync for {1} clan(s).",
+                        new Object[]{trigger, allClans.size()}
+                );
 
                 for (ClanSnapshot clanSnapshot : allClans) {
                     sendClanSnapshot("clan.sync", clanSnapshot, null);
@@ -197,6 +249,29 @@ public class LightweightClansBridge {
                 fullSyncInProgress.set(false);
             }
         });
+
+        return true;
+    }
+
+    public record BridgeStatus(
+            boolean masterEnabled,
+            boolean clansWebhookEnabled,
+            boolean endpointConfigured,
+            boolean apiAvailable,
+            boolean active,
+            boolean fullSyncOnStartup,
+            boolean periodicFullSyncEnabled,
+            int periodicFullSyncSeconds
+    ) {
+    }
+
+    public enum ManualSyncResult {
+        QUEUED,
+        ALREADY_RUNNING,
+        GLOBALLY_DISABLED,
+        CLANS_WEBHOOK_DISABLED,
+        MISSING_ENDPOINT,
+        API_UNAVAILABLE
     }
 
     interface FullSyncScheduler {
