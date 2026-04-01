@@ -6,12 +6,17 @@
 
     <groupId>rudynakodach.github.io</groupId>
     <artifactId>WebhookIntegrations</artifactId>
-    <version>5.5</version>
+    <version>${revision}</version>
     <packaging>jar</packaging>
 
     <name>WebhookIntegrations</name>
 
     <properties>
+        <pluginBaseVersion>5.5.0</pluginBaseVersion>
+        <pluginBuildNumber>67</pluginBuildNumber>
+        <pluginRepository>KolbieCheese/WebhookIntegrations-BIB</pluginRepository>
+        <pluginRepositoryBranch>master</pluginRepositoryBranch>
+        <revision>${pluginBaseVersion}-SNAPSHOT</revision>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -36,7 +41,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.5.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

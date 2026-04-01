@@ -29,9 +29,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 public class AutoUpdater {
-    static String downloadLinkUrl = "https://raw.githubusercontent.com/rudynakodach/WebhookIntegrations/master/downloadurl";
-    static String filenameUrl = "https://raw.githubusercontent.com/rudynakodach/WebhookIntegrations/master/filename";
-    static String buildNumberUrl = "https://raw.githubusercontent.com/rudynakodach/WebhookIntegrations/master/buildnumber";
     final JavaPlugin plugin;
     public AutoUpdater(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -79,7 +76,7 @@ public class AutoUpdater {
     private String getDownloadUrl() throws ExecutionException, InterruptedException {
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             try {
-                URL target = new URL(downloadLinkUrl);
+                URL target = new URL(getRawUrl("downloadurl"));
                 HttpURLConnection connection = (HttpURLConnection) target.openConnection();
                 connection.setRequestMethod("GET");
 
@@ -106,7 +103,7 @@ public class AutoUpdater {
     private String getLatestFilename() throws ExecutionException, InterruptedException {
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             try {
-                URL target = new URL(filenameUrl);
+                URL target = new URL(getRawUrl("filename"));
                 HttpURLConnection connection = (HttpURLConnection) target.openConnection();
                 connection.setRequestMethod("GET");
 
@@ -155,7 +152,7 @@ public class AutoUpdater {
     }
 
     public int getLatestVersion() throws IOException {
-        URL target = new URL(buildNumberUrl);
+        URL target = new URL(getRawUrl("buildnumber"));
         HttpURLConnection connection = (HttpURLConnection) target.openConnection();
         connection.setRequestMethod("GET");
 
@@ -175,5 +172,13 @@ public class AutoUpdater {
             return Integer.parseInt(response);
         }
         return -1;
+    }
+
+    private String getRawUrl(String fileName) {
+        return "https://raw.githubusercontent.com/%s/%s/%s".formatted(
+                BuildMetadata.getPluginRepository(),
+                BuildMetadata.getPluginRepositoryBranch(),
+                fileName
+        );
     }
 }
