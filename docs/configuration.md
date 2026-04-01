@@ -19,7 +19,8 @@ clansWebhook:
   endpoint: "https://example.com/api/clans-webhook"
   secret: "replace-me"
   fullSyncOnStartup: true
-  periodicFullSyncSeconds: 60
+  periodicFullSyncEnabled: false
+  periodicFullSyncSeconds: 0
   includeMembers: true
   includeBanner: true
   connectTimeoutMillis: 5000
@@ -32,7 +33,8 @@ clansWebhook:
 - `clansWebhook.endpoint`: HTTP endpoint that receives clan JSON payloads | string
 - `clansWebhook.secret`: HMAC secret used for `X-Webhook-Signature` | string
 - `clansWebhook.fullSyncOnStartup`: whether to send one `clan.sync` payload per clan during startup | bool
-- `clansWebhook.periodicFullSyncSeconds`: full `clan.sync` cadence in seconds, `0` disables the periodic resync | int
+- `clansWebhook.periodicFullSyncEnabled`: whether scheduled periodic `clan.sync` resends are enabled | bool
+- `clansWebhook.periodicFullSyncSeconds`: full `clan.sync` cadence in seconds when periodic resync is enabled | int
 - `clansWebhook.includeMembers`: whether to include the exported member list in non-delete payloads | bool
 - `clansWebhook.includeBanner`: whether to include the exported banner object in non-delete payloads | bool
 - `clansWebhook.connectTimeoutMillis`: HTTP connect timeout | int

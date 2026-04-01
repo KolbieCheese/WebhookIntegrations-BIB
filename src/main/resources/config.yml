@@ -1,5 +1,5 @@
 # don't change this, you'll most likely break your config
-config-version: 5
+config-version: 7
 
 check-for-updates: true
 auto-update: true
@@ -20,8 +20,10 @@ clansWebhook:
   secret: "replace-me"
   # Send one clan.sync payload per clan during startup so the website can rebuild its full state.
   fullSyncOnStartup: true
-  # Send a full clan.sync resync on this interval in seconds. Set to 0 to disable periodic full syncs.
-  periodicFullSyncSeconds: 60
+  # Optional periodic clan.sync resync. Leave this disabled for startup-sync-plus-live-events behavior.
+  periodicFullSyncEnabled: false
+  # Send a full clan.sync resync on this interval in seconds when periodicFullSyncEnabled is true.
+  periodicFullSyncSeconds: 0
   # Include the exported clan member snapshot list in each non-delete payload.
   includeMembers: true
   # Include the exported clan banner snapshot in each non-delete payload.

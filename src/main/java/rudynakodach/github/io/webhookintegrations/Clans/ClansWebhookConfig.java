@@ -8,6 +8,7 @@ public record ClansWebhookConfig(
         String endpoint,
         String secret,
         boolean fullSyncOnStartup,
+        boolean periodicFullSyncEnabled,
         int periodicFullSyncSeconds,
         boolean includeMembers,
         boolean includeBanner,
@@ -39,7 +40,8 @@ public record ClansWebhookConfig(
                 section.getString("endpoint", "https://example.com/api/clans-webhook"),
                 section.getString("secret", "replace-me"),
                 section.getBoolean("fullSyncOnStartup", true),
-                section.getInt("periodicFullSyncSeconds", 60),
+                section.getBoolean("periodicFullSyncEnabled", false),
+                section.getInt("periodicFullSyncSeconds", 0),
                 section.getBoolean("includeMembers", true),
                 section.getBoolean("includeBanner", true),
                 section.getInt("connectTimeoutMillis", 5000),
@@ -55,7 +57,8 @@ public record ClansWebhookConfig(
                 "https://example.com/api/clans-webhook",
                 "replace-me",
                 true,
-                60,
+                false,
+                0,
                 true,
                 true,
                 5000,
@@ -74,7 +77,7 @@ public record ClansWebhookConfig(
     }
 
     public boolean hasPeriodicFullSync() {
-        return periodicFullSyncSeconds > 0;
+        return periodicFullSyncEnabled && periodicFullSyncSeconds > 0;
     }
 
     public long periodicFullSyncTicks() {

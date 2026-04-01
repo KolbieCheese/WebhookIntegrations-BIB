@@ -21,7 +21,7 @@ class LightweightClansBridgeTest {
 
     @Test
     void missingApiDisablesOnlyClansIntegrationPath() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, 0, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, false, 0, true, true, 5000, 5000, 0, 1);
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansWebhookSender sender = new LightweightClansWebhookSender(
@@ -51,7 +51,7 @@ class LightweightClansBridgeTest {
 
     @Test
     void startupFullSyncSendsOnePayloadPerClan() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, 0, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, false, 0, true, true, 5000, 5000, 0, 1);
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansApi api = mock(LightweightClansApi.class);
@@ -94,7 +94,7 @@ class LightweightClansBridgeTest {
 
     @Test
     void periodicFullSyncQueuesClanSnapshotsOnConfiguredInterval() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 60, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, true, 60, true, true, 5000, 5000, 0, 1);
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansApi api = mock(LightweightClansApi.class);
@@ -142,5 +142,37 @@ class LightweightClansBridgeTest {
 
         bridge.disable();
         assertEquals(1, fullSyncScheduler.cancelledTaskCount());
+    }
+
+    @Test
+    void periodicFullSyncRequiresExplicitOptIn() {
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 60, true, true, 5000, 5000, 0, 1);
+        LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
+        PluginManager pluginManager = mock(PluginManager.class);
+        LightweightClansApi api = mock(LightweightClansApi.class);
+        LightweightClansTestSupport.RecordingFullSyncScheduler fullSyncScheduler = new LightweightClansTestSupport.RecordingFullSyncScheduler();
+
+        when(resolver.resolve()).thenReturn(Optional.of(api));
+
+        LightweightClansBridge bridge = new LightweightClansBridge(
+                LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                config,
+                resolver,
+                pluginManager,
+                new LightweightClansPayloadMapper(),
+                new LightweightClansWebhookSender(
+                        LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                        config,
+                        new LightweightClansTestSupport.RecordingScheduler(),
+                        new LightweightClansTestSupport.RecordingTransport(),
+                        new LightweightClansWebhookSigner()
+                ),
+                fullSyncScheduler
+        );
+
+        bridge.enable();
+
+        assertTrue(bridge.isActive());
+        assertEquals(0, fullSyncScheduler.queuedTaskCount());
     }
 }

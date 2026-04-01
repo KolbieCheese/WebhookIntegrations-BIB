@@ -37,7 +37,8 @@ clansWebhook:
   endpoint: "https://example.com/api/clans-webhook"
   secret: "replace-me"
   fullSyncOnStartup: true
-  periodicFullSyncSeconds: 60
+  periodicFullSyncEnabled: false
+  periodicFullSyncSeconds: 0
   includeMembers: true
   includeBanner: true
   connectTimeoutMillis: 5000
@@ -49,7 +50,7 @@ clansWebhook:
 What gets sent:
 
 - Startup full sync: `clan.sync`
-- Periodic full sync: `clan.sync` every `periodicFullSyncSeconds` seconds when set above `0`
+- Periodic full sync: `clan.sync` every `periodicFullSyncSeconds` seconds only when `periodicFullSyncEnabled` is true
 - Clan create: `clan.created`
 - Clan update: `clan.updated`
 - Clan delete: `clan.deleted`

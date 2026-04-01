@@ -159,7 +159,7 @@ class LightweightClansListenerTest {
     }
 
     private Fixture fixture(boolean includeMembers, boolean includeBanner) {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 0, includeMembers, includeBanner, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 0, includeMembers, includeBanner, 5000, 5000, 0, 1);
         LightweightClansTestSupport.RecordingScheduler scheduler = new LightweightClansTestSupport.RecordingScheduler();
         LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
         LightweightClansBridge bridge = new LightweightClansBridge(

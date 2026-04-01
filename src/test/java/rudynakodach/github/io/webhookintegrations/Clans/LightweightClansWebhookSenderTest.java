@@ -13,7 +13,7 @@ class LightweightClansWebhookSenderTest {
 
     @Test
     void failedDeliveriesAreRetried() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 0, true, true, 5000, 5000, 2, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 0, true, true, 5000, 5000, 2, 1);
         LightweightClansTestSupport.RecordingScheduler scheduler = new LightweightClansTestSupport.RecordingScheduler();
         LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
         transport.addResult(LightweightClansWebhookSender.DeliveryResult.failure("HTTP 500"));
@@ -46,7 +46,7 @@ class LightweightClansWebhookSenderTest {
 
     @Test
     void clientErrorsAreNotRetried() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 0, true, true, 5000, 5000, 5, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 0, true, true, 5000, 5000, 5, 1);
         LightweightClansTestSupport.RecordingScheduler scheduler = new LightweightClansTestSupport.RecordingScheduler();
         LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
         transport.addResult(LightweightClansWebhookSender.DeliveryResult.failure("HTTP 400", false));
@@ -75,7 +75,7 @@ class LightweightClansWebhookSenderTest {
 
     @Test
     void retriesUseFreshRequestTimestampsForSigning() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 0, true, true, 5000, 5000, 1, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 0, true, true, 5000, 5000, 1, 1);
         LightweightClansTestSupport.RecordingScheduler scheduler = new LightweightClansTestSupport.RecordingScheduler();
         LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
         Deque<Instant> timestamps = new ArrayDeque<>();

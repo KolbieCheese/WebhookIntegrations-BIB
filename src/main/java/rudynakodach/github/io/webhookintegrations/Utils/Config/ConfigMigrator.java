@@ -33,6 +33,9 @@ public class ConfigMigrator {
                 case 5:
                     toVersion6(plugin);
                     break;
+                case 6:
+                    toVersion7(plugin);
+                    break;
             }
             current++;
         }
@@ -138,5 +141,18 @@ public class ConfigMigrator {
         plugin.reloadConfig();
 
         plugin.getLogger().log(Level.INFO, "Config migrated to version 6!");
+    }
+
+    public static void toVersion7(@NotNull JavaPlugin plugin) {
+        plugin.getConfig().set("clansWebhook.periodicFullSyncEnabled", false);
+        if (!plugin.getConfig().contains("clansWebhook.periodicFullSyncSeconds")) {
+            plugin.getConfig().set("clansWebhook.periodicFullSyncSeconds", 0);
+        }
+
+        plugin.getConfig().set("config-version", 7);
+        plugin.saveConfig();
+        plugin.reloadConfig();
+
+        plugin.getLogger().log(Level.INFO, "Config migrated to version 7!");
     }
 }
