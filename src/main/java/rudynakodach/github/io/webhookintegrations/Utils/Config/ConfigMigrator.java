@@ -4,6 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import rudynakodach.github.io.webhookintegrations.Clans.ClansWebhookConfig;
 import rudynakodach.github.io.webhookintegrations.Modules.MessageConfiguration;
 import rudynakodach.github.io.webhookintegrations.Modules.MessageType;
 import rudynakodach.github.io.webhookintegrations.Modules.TemplateConfiguration;
@@ -35,6 +36,9 @@ public class ConfigMigrator {
                     break;
                 case 6:
                     toVersion7(plugin);
+                    break;
+                case 7:
+                    toVersion8(plugin);
                     break;
             }
             current++;
@@ -118,7 +122,7 @@ public class ConfigMigrator {
         plugin.getConfig().set("clansWebhook.endpoint", "https://example.com/api/clans-webhook");
         plugin.getConfig().set("clansWebhook.secret", "replace-me");
         plugin.getConfig().set("clansWebhook.fullSyncOnStartup", true);
-        plugin.getConfig().set("clansWebhook.periodicFullSyncSeconds", 60);
+        plugin.getConfig().set("clansWebhook.periodicFullSyncSeconds", ClansWebhookConfig.DEFAULT_PERIODIC_FULL_SYNC_SECONDS);
         plugin.getConfig().set("clansWebhook.includeMembers", true);
         plugin.getConfig().set("clansWebhook.includeBanner", true);
         plugin.getConfig().set("clansWebhook.connectTimeoutMillis", 5000);
@@ -134,7 +138,7 @@ public class ConfigMigrator {
     }
 
     public static void toVersion6(@NotNull JavaPlugin plugin) {
-        plugin.getConfig().set("clansWebhook.periodicFullSyncSeconds", 60);
+        plugin.getConfig().set("clansWebhook.periodicFullSyncSeconds", ClansWebhookConfig.DEFAULT_PERIODIC_FULL_SYNC_SECONDS);
 
         plugin.getConfig().set("config-version", 6);
         plugin.saveConfig();
@@ -154,5 +158,18 @@ public class ConfigMigrator {
         plugin.reloadConfig();
 
         plugin.getLogger().log(Level.INFO, "Config migrated to version 7!");
+    }
+
+    public static void toVersion8(@NotNull JavaPlugin plugin) {
+        int periodicFullSyncSeconds = plugin.getConfig().getInt("clansWebhook.periodicFullSyncSeconds", 0);
+        if (periodicFullSyncSeconds > 0 && periodicFullSyncSeconds < ClansWebhookConfig.MIN_PERIODIC_FULL_SYNC_SECONDS) {
+            plugin.getConfig().set("clansWebhook.periodicFullSyncSeconds", ClansWebhookConfig.DEFAULT_PERIODIC_FULL_SYNC_SECONDS);
+        }
+
+        plugin.getConfig().set("config-version", 8);
+        plugin.saveConfig();
+        plugin.reloadConfig();
+
+        plugin.getLogger().log(Level.INFO, "Config migrated to version 8!");
     }
 }

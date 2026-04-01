@@ -40,6 +40,7 @@ WebhookIntegrations can now forward Lightweight Clans snapshots to a regular JSO
 - Discovery: the bridge resolves `LightweightClansApi` through Bukkit `ServicesManager`
 - Startup sync: `clan.sync`
 - Periodic full sync: optional `clan.sync` cadence only when `clansWebhook.periodicFullSyncEnabled` is true
+  - Values below `7200` seconds are raised to `7200` to avoid excessive webhook traffic
 - Lifecycle events:
   - `clan.created`
   - `clan.updated`
@@ -59,7 +60,7 @@ clansWebhook:
   secret: "replace-me"
   fullSyncOnStartup: true
   periodicFullSyncEnabled: false
-  periodicFullSyncSeconds: 0
+  periodicFullSyncSeconds: 7200
   includeMembers: true
   includeBanner: true
   connectTimeoutMillis: 5000

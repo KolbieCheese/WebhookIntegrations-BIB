@@ -17,11 +17,16 @@ public record ClansWebhookConfig(
         int retryAttempts,
         int retryDelaySeconds
 ) {
+    public static final int DEFAULT_PERIODIC_FULL_SYNC_SECONDS = 7200;
+    public static final int MIN_PERIODIC_FULL_SYNC_SECONDS = 7200;
 
     public ClansWebhookConfig {
         endpoint = endpoint == null ? "" : endpoint.trim();
         secret = secret == null ? "" : secret;
         periodicFullSyncSeconds = Math.max(0, periodicFullSyncSeconds);
+        if (periodicFullSyncEnabled && periodicFullSyncSeconds > 0) {
+            periodicFullSyncSeconds = Math.max(MIN_PERIODIC_FULL_SYNC_SECONDS, periodicFullSyncSeconds);
+        }
         connectTimeoutMillis = Math.max(1, connectTimeoutMillis);
         readTimeoutMillis = Math.max(1, readTimeoutMillis);
         retryAttempts = Math.max(0, retryAttempts);
@@ -41,7 +46,7 @@ public record ClansWebhookConfig(
                 section.getString("secret", "replace-me"),
                 section.getBoolean("fullSyncOnStartup", true),
                 section.getBoolean("periodicFullSyncEnabled", false),
-                section.getInt("periodicFullSyncSeconds", 0),
+                section.getInt("periodicFullSyncSeconds", DEFAULT_PERIODIC_FULL_SYNC_SECONDS),
                 section.getBoolean("includeMembers", true),
                 section.getBoolean("includeBanner", true),
                 section.getInt("connectTimeoutMillis", 5000),
@@ -58,7 +63,7 @@ public record ClansWebhookConfig(
                 "replace-me",
                 true,
                 false,
-                0,
+                DEFAULT_PERIODIC_FULL_SYNC_SECONDS,
                 true,
                 true,
                 5000,

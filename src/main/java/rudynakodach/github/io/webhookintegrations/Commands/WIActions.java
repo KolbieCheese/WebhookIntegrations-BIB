@@ -259,6 +259,9 @@ public class WIActions implements CommandExecutor, TabCompleter {
         plugin.getConfig().set("isEnabled", true);
         plugin.saveConfig();
         plugin.reloadConfig();
+        if (plugin instanceof WebhookIntegrations webhookIntegrations) {
+            webhookIntegrations.reloadLightweightClansBridge();
+        }
 
         commandSender.sendMessage(LanguageConfiguration.get().getLocalizedString("commands.enable"));
 
@@ -277,6 +280,9 @@ public class WIActions implements CommandExecutor, TabCompleter {
         plugin.getConfig().set("isEnabled", false);
         plugin.saveConfig();
         plugin.reloadConfig();
+        if (plugin instanceof WebhookIntegrations webhookIntegrations) {
+            webhookIntegrations.reloadLightweightClansBridge();
+        }
 
         commandSender.sendMessage(LanguageConfiguration.get().getLocalizedString("commands.disable"));
 

@@ -23,7 +23,8 @@ clansWebhook:
   # Optional periodic clan.sync resync. Leave this disabled for startup-sync-plus-live-events behavior.
   periodicFullSyncEnabled: false
   # Send a full clan.sync resync on this interval in seconds when periodicFullSyncEnabled is true.
-  periodicFullSyncSeconds: 0
+  # Values below 7200 are raised to 7200 to avoid excessive webhook traffic.
+  periodicFullSyncSeconds: 7200
   # Include the exported clan member snapshot list in each non-delete payload.
   includeMembers: true
   # Include the exported clan banner snapshot in each non-delete payload.

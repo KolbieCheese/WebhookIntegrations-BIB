@@ -94,7 +94,20 @@ class LightweightClansBridgeTest {
 
     @Test
     void periodicFullSyncQueuesClanSnapshotsOnConfiguredInterval() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, true, 60, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(
+                true,
+                "https://example.com/webhook",
+                "secret",
+                false,
+                true,
+                ClansWebhookConfig.DEFAULT_PERIODIC_FULL_SYNC_SECONDS,
+                true,
+                true,
+                5000,
+                5000,
+                0,
+                1
+        );
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansApi api = mock(LightweightClansApi.class);
@@ -127,8 +140,8 @@ class LightweightClansBridgeTest {
         bridge.enable();
 
         assertTrue(bridge.isActive());
-        assertEquals(List.of(1200L), fullSyncScheduler.initialDelays());
-        assertEquals(List.of(1200L), fullSyncScheduler.periods());
+        assertEquals(List.of(144000L), fullSyncScheduler.initialDelays());
+        assertEquals(List.of(144000L), fullSyncScheduler.periods());
         assertEquals(1, fullSyncScheduler.queuedTaskCount());
 
         fullSyncScheduler.runNext();
@@ -146,7 +159,20 @@ class LightweightClansBridgeTest {
 
     @Test
     void periodicFullSyncRequiresExplicitOptIn() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, 60, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(
+                true,
+                "https://example.com/webhook",
+                "secret",
+                false,
+                false,
+                ClansWebhookConfig.DEFAULT_PERIODIC_FULL_SYNC_SECONDS,
+                true,
+                true,
+                5000,
+                5000,
+                0,
+                1
+        );
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansApi api = mock(LightweightClansApi.class);

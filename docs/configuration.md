@@ -20,7 +20,7 @@ clansWebhook:
   secret: "replace-me"
   fullSyncOnStartup: true
   periodicFullSyncEnabled: false
-  periodicFullSyncSeconds: 0
+  periodicFullSyncSeconds: 7200
   includeMembers: true
   includeBanner: true
   connectTimeoutMillis: 5000
@@ -34,7 +34,7 @@ clansWebhook:
 - `clansWebhook.secret`: HMAC secret used for `X-Webhook-Signature` | string
 - `clansWebhook.fullSyncOnStartup`: whether to send one `clan.sync` payload per clan during startup | bool
 - `clansWebhook.periodicFullSyncEnabled`: whether scheduled periodic `clan.sync` resends are enabled | bool
-- `clansWebhook.periodicFullSyncSeconds`: full `clan.sync` cadence in seconds when periodic resync is enabled | int
+- `clansWebhook.periodicFullSyncSeconds`: full `clan.sync` cadence in seconds when periodic resync is enabled; values below `7200` are raised to `7200` | int
 - `clansWebhook.includeMembers`: whether to include the exported member list in non-delete payloads | bool
 - `clansWebhook.includeBanner`: whether to include the exported banner object in non-delete payloads | bool
 - `clansWebhook.connectTimeoutMillis`: HTTP connect timeout | int

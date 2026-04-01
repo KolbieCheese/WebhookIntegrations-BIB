@@ -38,7 +38,7 @@ clansWebhook:
   secret: "replace-me"
   fullSyncOnStartup: true
   periodicFullSyncEnabled: false
-  periodicFullSyncSeconds: 0
+  periodicFullSyncSeconds: 7200
   includeMembers: true
   includeBanner: true
   connectTimeoutMillis: 5000
@@ -51,6 +51,7 @@ What gets sent:
 
 - Startup full sync: `clan.sync`
 - Periodic full sync: `clan.sync` every `periodicFullSyncSeconds` seconds only when `periodicFullSyncEnabled` is true
+  - Values below `7200` seconds are raised to `7200` so the bridge does not spam the receiver
 - Clan create: `clan.created`
 - Clan update: `clan.updated`
 - Clan delete: `clan.deleted`
