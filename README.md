@@ -71,7 +71,7 @@ Every request is sent as `application/json` with these headers:
 
 - `X-Webhook-Source: lightweight-clans`
 - `X-Webhook-Event: <event name>`
-- `X-Webhook-Timestamp: <same ISO-8601 timestamp used in the payload>`
+- `X-Webhook-Timestamp: <ISO-8601 request timestamp used for signature freshness>`
 - `X-Webhook-Signature: sha256=<hmac>`
 
 The signature payload is:

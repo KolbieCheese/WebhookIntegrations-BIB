@@ -64,7 +64,7 @@ Headers added to every clans webhook request:
 - `Content-Type: application/json`
 - `X-Webhook-Source: lightweight-clans`
 - `X-Webhook-Event: <event name>`
-- `X-Webhook-Timestamp: <payload occurredAt>`
+- `X-Webhook-Timestamp: <request signing timestamp>`
 - `X-Webhook-Signature: sha256=<hmac>`
 
 The signature is computed from:
