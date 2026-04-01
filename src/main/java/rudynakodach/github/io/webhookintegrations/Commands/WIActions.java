@@ -206,6 +206,9 @@ public class WIActions implements CommandExecutor, TabCompleter {
 
         plugin.reloadConfig();
         WebhookIntegrationsModule.reloadAll();
+        if (plugin instanceof WebhookIntegrations webhookIntegrations) {
+            webhookIntegrations.reloadLightweightClansBridge();
+        }
 
         commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', LanguageConfiguration.get().getLocalizedString("commands.config.reloadFinish")));
         return true;

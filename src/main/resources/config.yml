@@ -20,6 +20,8 @@ clansWebhook:
   secret: "replace-me"
   # Send one clan.sync payload per clan during startup so the website can rebuild its full state.
   fullSyncOnStartup: true
+  # Send a full clan.sync resync on this interval in seconds. Set to 0 to disable periodic full syncs.
+  periodicFullSyncSeconds: 60
   # Include the exported clan member snapshot list in each non-delete payload.
   includeMembers: true
   # Include the exported clan banner snapshot in each non-delete payload.

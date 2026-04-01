@@ -130,6 +130,43 @@ final class LightweightClansTestSupport {
         }
     }
 
+    static final class RecordingFullSyncScheduler implements LightweightClansBridge.FullSyncScheduler {
+        private final Deque<Runnable> queuedTasks = new ArrayDeque<>();
+        private final List<Long> initialDelays = new ArrayList<>();
+        private final List<Long> periods = new ArrayList<>();
+        private int cancelledTaskCount;
+
+        @Override
+        public LightweightClansBridge.ScheduledTask runRepeatingAsync(Runnable task, long initialDelayTicks, long periodTicks) {
+            initialDelays.add(initialDelayTicks);
+            periods.add(periodTicks);
+            queuedTasks.add(task);
+            return () -> cancelledTaskCount++;
+        }
+
+        int queuedTaskCount() {
+            return queuedTasks.size();
+        }
+
+        List<Long> initialDelays() {
+            return initialDelays;
+        }
+
+        List<Long> periods() {
+            return periods;
+        }
+
+        int cancelledTaskCount() {
+            return cancelledTaskCount;
+        }
+
+        void runNext() {
+            if (!queuedTasks.isEmpty()) {
+                queuedTasks.removeFirst().run();
+            }
+        }
+    }
+
     static final class RecordingTransport implements LightweightClansWebhookSender.HttpTransport {
         private final Deque<LightweightClansWebhookSender.DeliveryResult> scriptedResults = new ArrayDeque<>();
         private final List<Request> requests = new ArrayList<>();

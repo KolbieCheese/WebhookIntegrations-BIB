@@ -27,7 +27,7 @@ If you want clan lifecycle data pushed to a website or other JSON endpoint:
 2. Enable the `clansWebhook` section in `config.yml`.
 3. Set `clansWebhook.endpoint` to your HTTP endpoint.
 4. Set `clansWebhook.secret` to the shared HMAC secret your receiver expects.
-5. Reload or restart the server.
+5. Reload or restart the server. `/wi reload` reapplies the clans bridge settings.
 
 Recommended config:
 
@@ -37,6 +37,7 @@ clansWebhook:
   endpoint: "https://example.com/api/clans-webhook"
   secret: "replace-me"
   fullSyncOnStartup: true
+  periodicFullSyncSeconds: 60
   includeMembers: true
   includeBanner: true
   connectTimeoutMillis: 5000
@@ -48,6 +49,7 @@ clansWebhook:
 What gets sent:
 
 - Startup full sync: `clan.sync`
+- Periodic full sync: `clan.sync` every `periodicFullSyncSeconds` seconds when set above `0`
 - Clan create: `clan.created`
 - Clan update: `clan.updated`
 - Clan delete: `clan.deleted`

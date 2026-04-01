@@ -21,7 +21,7 @@ class LightweightClansBridgeTest {
 
     @Test
     void missingApiDisablesOnlyClansIntegrationPath() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, 0, true, true, 5000, 5000, 0, 1);
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansWebhookSender sender = new LightweightClansWebhookSender(
@@ -51,7 +51,7 @@ class LightweightClansBridgeTest {
 
     @Test
     void startupFullSyncSendsOnePayloadPerClan() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, true, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, 0, true, true, 5000, 5000, 0, 1);
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
         LightweightClansApi api = mock(LightweightClansApi.class);
@@ -90,5 +90,57 @@ class LightweightClansBridgeTest {
         assertEquals(2, transport.requests().size());
         assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.sync\""));
         assertTrue(transport.requests().get(1).body().contains("\"event\":\"clan.sync\""));
+    }
+
+    @Test
+    void periodicFullSyncQueuesClanSnapshotsOnConfiguredInterval() {
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 60, true, true, 5000, 5000, 0, 1);
+        LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
+        PluginManager pluginManager = mock(PluginManager.class);
+        LightweightClansApi api = mock(LightweightClansApi.class);
+        LightweightClansTestSupport.RecordingScheduler deliveryScheduler = new LightweightClansTestSupport.RecordingScheduler();
+        LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
+        LightweightClansTestSupport.RecordingFullSyncScheduler fullSyncScheduler = new LightweightClansTestSupport.RecordingFullSyncScheduler();
+
+        when(resolver.resolve()).thenReturn(Optional.of(api));
+        when(api.getAllClansAsync()).thenReturn(CompletableFuture.completedFuture(List.of(
+                LightweightClansTestSupport.clanSnapshot(),
+                LightweightClansTestSupport.renamedClanSnapshot()
+        )));
+
+        LightweightClansBridge bridge = new LightweightClansBridge(
+                LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                config,
+                resolver,
+                pluginManager,
+                new LightweightClansPayloadMapper(),
+                new LightweightClansWebhookSender(
+                        LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                        config,
+                        deliveryScheduler,
+                        transport,
+                        new LightweightClansWebhookSigner()
+                ),
+                fullSyncScheduler
+        );
+
+        bridge.enable();
+
+        assertTrue(bridge.isActive());
+        assertEquals(List.of(1200L), fullSyncScheduler.initialDelays());
+        assertEquals(List.of(1200L), fullSyncScheduler.periods());
+        assertEquals(1, fullSyncScheduler.queuedTaskCount());
+
+        fullSyncScheduler.runNext();
+        assertEquals(2, deliveryScheduler.queuedTaskCount());
+
+        deliveryScheduler.runAll();
+
+        assertEquals(2, transport.requests().size());
+        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.sync\""));
+        assertTrue(transport.requests().get(1).body().contains("\"event\":\"clan.sync\""));
+
+        bridge.disable();
+        assertEquals(1, fullSyncScheduler.cancelledTaskCount());
     }
 }

@@ -47,7 +47,9 @@ import java.util.logging.Level;
 public final class WebhookIntegrations extends JavaPlugin {
     public static boolean isLatest = true;
     public static final int currentBuildNumber = BuildMetadata.getCurrentBuildNumber();
-    public static final int currentConfigVersion = 5;
+    public static final int currentConfigVersion = 6;
+
+    private LightweightClansBridge clansBridge;
 
     @Override
     public void onEnable() {
@@ -175,7 +177,7 @@ public final class WebhookIntegrations extends JavaPlugin {
         PlayerCountChangeListener playerCountChangeListener = new PlayerCountChangeListener(this);
         getServer().getPluginManager().registerEvents(playerCountChangeListener,this);
 
-        new LightweightClansBridge(this).enable();
+        reloadLightweightClansBridge();
 
         getLogger().log(Level.INFO, language.getLocalizedString("onStart.eventRegisterFinish"));
 
@@ -212,8 +214,22 @@ public final class WebhookIntegrations extends JavaPlugin {
             sendStopMessage();
         }
 
+        if (clansBridge != null) {
+            clansBridge.disable();
+            clansBridge = null;
+        }
+
         getLogger().log(Level.INFO, "this is my final message");
         getLogger().log(Level.INFO, "goodb ye");
+    }
+
+    public void reloadLightweightClansBridge() {
+        if (clansBridge != null) {
+            clansBridge.disable();
+        }
+
+        clansBridge = new LightweightClansBridge(this);
+        clansBridge.enable();
     }
 
     private void sendStopMessage() {

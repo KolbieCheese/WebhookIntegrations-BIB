@@ -11,7 +11,7 @@ class LightweightClansPayloadMapperTest {
 
     @Test
     void includeMembersFalseOmitsMemberListFromPayload() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, false, true, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 0, false, true, 5000, 5000, 0, 1);
         LightweightClansPayloadMapper mapper = new LightweightClansPayloadMapper();
 
         String body = mapper.createClanPayload(
@@ -28,7 +28,7 @@ class LightweightClansPayloadMapperTest {
 
     @Test
     void includeBannerFalseOmitsBannerFromPayload() {
-        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, true, false, 5000, 5000, 0, 1);
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", false, 0, true, false, 5000, 5000, 0, 1);
         LightweightClansPayloadMapper mapper = new LightweightClansPayloadMapper();
 
         String body = mapper.createClanPayload(
