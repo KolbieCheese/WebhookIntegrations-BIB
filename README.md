@@ -18,6 +18,10 @@ The simplest solution for Discord Webhook integration with your Minecraft server
 Get the plugin from [SpigotMC](https://www.spigotmc.org/resources/webhookintegrations-1-17-1-19-pl-en.107688/) or [CurseForge](https://curseforge.com/minecraft/bukkit-plugins/webhookintegrations)
 
 ### ⚠️ Note: This plugin no longer supports legacy Minecraft versions. Use ViaBackwards, ViaVersion or ViaRewind to allow older clients to connect to your server. ⚠️
+## Compatibility
+
+This custom build targets Paper `26.2` and is compiled against Paper API `26.2.build.48-alpha`. Paper `26.2` requires Java 25 or newer, so GitHub release builds use Java 25.
+
 # Features
 
 - Multi-webhook support

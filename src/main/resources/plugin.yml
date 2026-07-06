@@ -2,7 +2,7 @@ name: WebhookIntegrations
 version: '${project.version}'
 softdepend: [PlaceholderAPI, LightweightClans]
 main: rudynakodach.github.io.webhookintegrations.WebhookIntegrations
-api-version: '1.21'
+api-version: '26.2'
 commands:
 
   seturl:

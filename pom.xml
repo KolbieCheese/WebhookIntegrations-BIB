@@ -17,7 +17,8 @@
         <pluginRepository>KolbieCheese/WebhookIntegrations-BIB</pluginRepository>
         <pluginRepositoryBranch>master</pluginRepositoryBranch>
         <revision>${pluginBaseVersion}-SNAPSHOT</revision>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
+        <paperApiVersion>26.2.build.48-alpha</paperApiVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -26,7 +27,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.14.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -41,7 +42,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -96,7 +97,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <version>${paperApiVersion}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -143,7 +144,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.17.0</version>
+            <version>5.23.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
