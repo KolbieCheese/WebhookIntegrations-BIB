@@ -49,9 +49,12 @@ clansWebhook:
 
 What gets sent:
 
-- Startup full sync: `clan.sync`
-- Periodic full sync: `clan.sync` every `periodicFullSyncSeconds` seconds only when `periodicFullSyncEnabled` is true
+- Startup full sync: one authoritative `clan.snapshot`, followed by one `clan.sync` per clan for compatibility
+- Manual full sync (`/wi clans sync`): one authoritative `clan.snapshot`, followed by one `clan.sync` per clan for compatibility
+- Periodic full sync: one authoritative `clan.snapshot` every `periodicFullSyncSeconds` seconds only when `periodicFullSyncEnabled` is true, followed by one `clan.sync` per clan for compatibility
   - Values below `7200` seconds are raised to `7200` so the bridge does not spam the receiver
+- Authoritative snapshot: `clan.snapshot`
+- Compatibility clan upsert: `clan.sync`
 - Clan create: `clan.created`
 - Clan update: `clan.updated`
 - Clan delete: `clan.deleted`
@@ -73,6 +76,16 @@ The signature is computed from:
 
 ```text
 timestamp + "." + rawRequestBody
+```
+
+`clan.snapshot` uses the same clan object shape as `clan.sync`, wrapped in a `clans` array. If `LightweightClansApi.getAllClansAsync()` returns no clans, WebhookIntegrations still sends:
+
+```json
+{
+  "event": "clan.snapshot",
+  "occurredAt": "2026-03-31T21:09:00Z",
+  "clans": []
+}
 ```
 
 If `LightweightClansApi` is not registered in Bukkit `ServicesManager`, or if `clansWebhook.endpoint` is blank, WebhookIntegrations disables only the clans bridge and leaves the rest of the plugin running.

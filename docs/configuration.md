@@ -32,15 +32,17 @@ clansWebhook:
 - `clansWebhook.enabled`: whether the Lightweight Clans bridge is active | bool
 - `clansWebhook.endpoint`: HTTP endpoint that receives clan JSON payloads | string
 - `clansWebhook.secret`: HMAC secret used for `X-Webhook-Signature` | string
-- `clansWebhook.fullSyncOnStartup`: whether to send one `clan.sync` payload per clan during startup | bool
-- `clansWebhook.periodicFullSyncEnabled`: whether scheduled periodic `clan.sync` resends are enabled | bool
-- `clansWebhook.periodicFullSyncSeconds`: full `clan.sync` cadence in seconds when periodic resync is enabled; values below `7200` are raised to `7200` | int
+- `clansWebhook.fullSyncOnStartup`: whether startup sends an authoritative `clan.snapshot`, followed by one compatibility `clan.sync` payload per clan | bool
+- `clansWebhook.periodicFullSyncEnabled`: whether scheduled periodic authoritative `clan.snapshot` resends are enabled, followed by compatibility `clan.sync` events | bool
+- `clansWebhook.periodicFullSyncSeconds`: full `clan.snapshot` cadence in seconds when periodic resync is enabled; values below `7200` are raised to `7200` | int
 - `clansWebhook.includeMembers`: whether to include the exported member list in non-delete payloads | bool
 - `clansWebhook.includeBanner`: whether to include the exported banner object in non-delete payloads | bool
 - `clansWebhook.connectTimeoutMillis`: HTTP connect timeout | int
 - `clansWebhook.readTimeoutMillis`: HTTP read timeout | int
 - `clansWebhook.retryAttempts`: retry count after the initial failed delivery | int
 - `clansWebhook.retryDelaySeconds`: delay between retries | int
+
+Startup, manual, and periodic full syncs all use the existing endpoint, secret, and HMAC headers. They send `clan.snapshot` with the full list returned by `LightweightClansApi.getAllClansAsync()`, including `"clans": []` on fresh or reset servers.
 
 `send-quit-when-kicked`: if the player gets kicked, do we send the quit message? | bool
 

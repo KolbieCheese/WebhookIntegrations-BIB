@@ -60,6 +60,26 @@ public class LightweightClansPayloadMapper {
         );
     }
 
+    public WebhookPayload createSnapshotPayload(
+            Instant occurredAt,
+            Collection<ClanSnapshot> clanSnapshots,
+            ClansWebhookConfig config
+    ) {
+        Collection<ClanSnapshot> snapshots = clanSnapshots == null ? List.of() : clanSnapshots;
+        LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
+        payload.put("event", "clan.snapshot");
+        payload.put("occurredAt", occurredAt.toString());
+        payload.put("clans", snapshots.stream().map(clanSnapshot -> toClanObject(clanSnapshot, config)).toList());
+
+        return new WebhookPayload(
+                "clan.snapshot",
+                occurredAt.toString(),
+                JsonSerializer.toJson(payload),
+                0L,
+                "full snapshot"
+        );
+    }
+
     private Map<String, Object> toClanObject(ClanSnapshot clanSnapshot, ClansWebhookConfig config) {
         LinkedHashMap<String, Object> clan = new LinkedHashMap<>();
         clan.put("id", clanSnapshot.id());

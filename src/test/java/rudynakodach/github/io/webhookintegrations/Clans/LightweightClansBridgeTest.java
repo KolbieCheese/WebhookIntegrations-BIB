@@ -51,7 +51,7 @@ class LightweightClansBridgeTest {
     }
 
     @Test
-    void startupFullSyncSendsOnePayloadPerClan() {
+    void startupFullSyncSendsAuthoritativeSnapshotBeforeCompatibilitySyncs() {
         ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, false, 0, true, true, 5000, 5000, 0, 1);
         LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
         PluginManager pluginManager = mock(PluginManager.class);
@@ -84,13 +84,63 @@ class LightweightClansBridgeTest {
 
         assertTrue(bridge.isActive());
         verify(pluginManager).registerEvents(any(), any());
-        assertEquals(2, scheduler.queuedTaskCount());
+        assertEquals(3, scheduler.queuedTaskCount());
 
         scheduler.runAll();
 
-        assertEquals(2, transport.requests().size());
-        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.sync\""));
+        assertEquals(3, transport.requests().size());
+        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.snapshot\""));
+        assertTrue(transport.requests().getFirst().body().contains("\"clans\":["));
+        assertTrue(transport.requests().getFirst().body().contains("\"name\":\"Crimson Knights\""));
+        assertTrue(transport.requests().getFirst().body().contains("\"name\":\"Crimson Empire\""));
         assertTrue(transport.requests().get(1).body().contains("\"event\":\"clan.sync\""));
+        assertTrue(transport.requests().get(2).body().contains("\"event\":\"clan.sync\""));
+    }
+
+    @Test
+    void startupFullSyncSendsEmptySnapshotWithSignedSnapshotHeaders() {
+        ClansWebhookConfig config = new ClansWebhookConfig(true, "https://example.com/webhook", "secret", true, false, 0, true, true, 5000, 5000, 0, 1);
+        LightweightClansServiceResolver resolver = mock(LightweightClansServiceResolver.class);
+        PluginManager pluginManager = mock(PluginManager.class);
+        LightweightClansApi api = mock(LightweightClansApi.class);
+        LightweightClansTestSupport.RecordingScheduler scheduler = new LightweightClansTestSupport.RecordingScheduler();
+        LightweightClansTestSupport.RecordingTransport transport = new LightweightClansTestSupport.RecordingTransport();
+
+        when(resolver.resolve()).thenReturn(Optional.of(api));
+        when(api.getAllClansAsync()).thenReturn(CompletableFuture.completedFuture(List.of()));
+
+        LightweightClansBridge bridge = new LightweightClansBridge(
+                LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                config,
+                resolver,
+                pluginManager,
+                new LightweightClansPayloadMapper(),
+                new LightweightClansWebhookSender(
+                        LightweightClansTestSupport.pluginWithConfig(LightweightClansTestSupport.pluginConfig()),
+                        config,
+                        scheduler,
+                        transport,
+                        new LightweightClansWebhookSigner(),
+                        () -> java.time.Instant.parse("2026-03-31T22:00:00Z")
+                )
+        );
+
+        bridge.enable();
+
+        assertEquals(1, scheduler.queuedTaskCount());
+        scheduler.runAll();
+
+        assertEquals(1, transport.requests().size());
+        LightweightClansTestSupport.Request snapshotRequest = transport.requests().getFirst();
+        assertTrue(snapshotRequest.body().contains("\"event\":\"clan.snapshot\""));
+        assertTrue(snapshotRequest.body().contains("\"clans\":[]"));
+        assertEquals("lightweight-clans", snapshotRequest.headers().get("X-Webhook-Source"));
+        assertEquals("clan.snapshot", snapshotRequest.headers().get("X-Webhook-Event"));
+        assertEquals("2026-03-31T22:00:00Z", snapshotRequest.headers().get("X-Webhook-Timestamp"));
+        assertEquals(
+                new LightweightClansWebhookSigner().sign("secret", "2026-03-31T22:00:00Z", snapshotRequest.body()),
+                snapshotRequest.headers().get("X-Webhook-Signature")
+        );
     }
 
     @Test
@@ -146,13 +196,14 @@ class LightweightClansBridgeTest {
         assertEquals(1, fullSyncScheduler.queuedTaskCount());
 
         fullSyncScheduler.runNext();
-        assertEquals(2, deliveryScheduler.queuedTaskCount());
+        assertEquals(3, deliveryScheduler.queuedTaskCount());
 
         deliveryScheduler.runAll();
 
-        assertEquals(2, transport.requests().size());
-        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.sync\""));
+        assertEquals(3, transport.requests().size());
+        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.snapshot\""));
         assertTrue(transport.requests().get(1).body().contains("\"event\":\"clan.sync\""));
+        assertTrue(transport.requests().get(2).body().contains("\"event\":\"clan.sync\""));
 
         bridge.disable();
         assertEquals(1, fullSyncScheduler.cancelledTaskCount());
@@ -249,12 +300,13 @@ class LightweightClansBridgeTest {
         bridge.enable();
 
         assertEquals(LightweightClansBridge.ManualSyncResult.QUEUED, bridge.queueManualFullSync());
-        assertEquals(2, deliveryScheduler.queuedTaskCount());
+        assertEquals(3, deliveryScheduler.queuedTaskCount());
 
         deliveryScheduler.runAll();
 
-        assertEquals(2, transport.requests().size());
-        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.sync\""));
+        assertEquals(3, transport.requests().size());
+        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.snapshot\""));
+        assertTrue(transport.requests().get(1).body().contains("\"event\":\"clan.sync\""));
     }
 
     @Test
@@ -296,6 +348,7 @@ class LightweightClansBridgeTest {
 
         deliveryScheduler.runAll();
 
-        assertEquals(2, transport.requests().size());
+        assertEquals(3, transport.requests().size());
+        assertTrue(transport.requests().getFirst().body().contains("\"event\":\"clan.snapshot\""));
     }
 }

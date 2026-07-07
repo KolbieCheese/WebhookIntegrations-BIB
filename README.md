@@ -42,10 +42,12 @@ WebhookIntegrations can now forward Lightweight Clans snapshots to a regular JSO
 
 - Dependency: install `LightweightClans` on the same Paper server; it is not bundled into the WebhookIntegrations jar
 - Discovery: the bridge resolves `LightweightClansApi` through Bukkit `ServicesManager`
-- Startup sync: `clan.sync`
-- Periodic full sync: optional `clan.sync` cadence only when `clansWebhook.periodicFullSyncEnabled` is true
+- Startup full sync: one authoritative `clan.snapshot`, followed by per-clan `clan.sync` compatibility events
+- Periodic full sync: optional authoritative `clan.snapshot` cadence only when `clansWebhook.periodicFullSyncEnabled` is true, followed by per-clan `clan.sync` compatibility events
   - Values below `7200` seconds are raised to `7200` to avoid excessive webhook traffic
 - Lifecycle events:
+  - `clan.snapshot`
+  - `clan.sync`
   - `clan.created`
   - `clan.updated`
   - `clan.deleted`
@@ -85,6 +87,34 @@ The signature payload is:
 ```text
 timestamp + "." + rawRequestBody
 ```
+
+Authoritative full-sync payload example:
+
+```json
+{
+  "event": "clan.snapshot",
+  "occurredAt": "2026-03-31T21:09:00Z",
+  "clans": [
+    {
+      "id": 42,
+      "name": "Crimson Knights",
+      "normalizedName": "crimson knights",
+      "tag": "CK",
+      "tagColor": "#ffaa00",
+      "description": "PvP and building clan.",
+      "presidentUuid": "11111111-1111-1111-1111-111111111111",
+      "presidentName": "Kolbie",
+      "memberCount": 12,
+      "members": [],
+      "banner": null,
+      "createdAt": "2026-03-31T19:15:30Z",
+      "updatedAt": "2026-03-31T21:09:00Z"
+    }
+  ]
+}
+```
+
+When the Lightweight Clans API reports no clans, WebhookIntegrations still sends `clan.snapshot` with `"clans": []` so the receiver can clear stale website state.
 
 Non-delete payload example:
 

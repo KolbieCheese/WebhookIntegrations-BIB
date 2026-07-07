@@ -238,9 +238,11 @@ public class LightweightClansBridge {
                 List<ClanSnapshot> allClans = clans == null ? List.of() : clans;
                 plugin.getLogger().log(
                         Level.INFO,
-                        "Queueing Lightweight Clans {0} sync for {1} clan(s).",
+                        "Queueing Lightweight Clans {0} full snapshot and compatibility sync for {1} clan(s).",
                         new Object[]{trigger, allClans.size()}
                 );
+
+                webhookSender.sendAsync(payloadMapper.createSnapshotPayload(Instant.now(), allClans, config));
 
                 for (ClanSnapshot clanSnapshot : allClans) {
                     sendClanSnapshot("clan.sync", clanSnapshot, null);
