@@ -24,7 +24,11 @@ Get the plugin from [SpigotMC](https://www.spigotmc.org/resources/webhookintegra
 ### ⚠️ Note: This plugin no longer supports legacy Minecraft versions. Use ViaBackwards, ViaVersion or ViaRewind to allow older clients to connect to your server. ⚠️
 ## Compatibility
 
-This custom build targets Paper `26.2` and is compiled against Paper API `26.2.build.48-alpha`. Paper `26.2` requires Java 25 or newer, so GitHub release builds use Java 25.
+This custom build targets Paper `26.2` and is compiled against the stable Paper API `26.2.build.123-stable`. Paper `26.2` requires Java 25 or newer, so GitHub release builds use Java 25.
+
+To build locally, select JDK 25 with `JAVA_HOME` and run `mvn -B -Dmaven.repo.local=.m2/repository clean verify`. This runs the regression tests and creates `target/WebhookIntegrations-5.5.0-SNAPSHOT.jar`. The repository-local Maven cache keeps dependency resolution separate from other plugin projects being built on the same computer.
+
+The LightweightClans compile dependency is pinned to the JAR checked into `local-maven/`; builds do not consume a neighboring repository's changing output. LightweightClans and PlaceholderAPI remain optional server plugins and are not bundled in the release JAR. Existing configuration files, commands, Discord message templates, and the clans webhook payload contract are preserved.
 
 # Features
 
