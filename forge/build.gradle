@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle' version '6.0.36'
+}
+
+group = 'rudynakodach.github.io'
+def paperPom = new XmlSlurper().parse(file('../pom.xml'))
+version = providers.gradleProperty('modVersion').getOrElse("${paperPom.properties.pluginBaseVersion}-SNAPSHOT")
+base { archivesName = 'WebhookIntegrations-Forge-1.20.1' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+    runs {
+        server {
+            workingDirectory project.file('run')
+            args '--nogui'
+            mods { webhookintegrations { source sourceSets.main } }
+        }
+    }
+}
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+tasks.named('processResources') {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/mods.toml') { expand(version: project.version) }
+}
+tasks.named('jar') {
+    from('../LICENSE')
+    manifest.attributes('Implementation-Version': project.version, 'Implementation-Title': 'WebhookIntegrations Forge')
+    finalizedBy 'reobfJar'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+test { useJUnitPlatform() }

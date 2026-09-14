@@ -19,14 +19,21 @@ This repository is a custom Beauty in Blocks build of [rudynakodach/WebhookInteg
 **Read the official guide [here](docs/guide.md)**
 
 # Download
-Get the plugin from [SpigotMC](https://www.spigotmc.org/resources/webhookintegrations-1-17-1-19-pl-en.107688/) or [CurseForge](https://curseforge.com/minecraft/bukkit-plugins/webhookintegrations)
+Get this Beauty in Blocks build from [GitHub Releases](https://github.com/KolbieCheese/WebhookIntegrations-BIB/releases/latest). Each release contains separately named Paper and Forge JARs.
+
+| File | Server | Java | Install location |
+| --- | --- | --- | --- |
+| `WebhookIntegrations-Paper-<version>.jar` | Paper 26.2 | 25+ | `plugins/` |
+| `WebhookIntegrations-Forge-1.20.1-<version>.jar` | Forge 1.20.1, 47.4.0+ | 17 | `mods/` |
+
+See [Forge setup, commands, and feature differences](docs/forge.md). The feature and configuration documentation below describes the Paper edition.
 
 ### ⚠️ Note: This plugin no longer supports legacy Minecraft versions. Use ViaBackwards, ViaVersion or ViaRewind to allow older clients to connect to your server. ⚠️
 ## Compatibility
 
 This custom build targets Paper `26.2` and is compiled against the stable Paper API `26.2.build.123-stable`. Paper `26.2` requires Java 25 or newer, so GitHub release builds use Java 25.
 
-To build locally, select JDK 25 with `JAVA_HOME` and run `mvn -B -Dmaven.repo.local=.m2/repository clean verify`. This runs the regression tests and creates `target/WebhookIntegrations-5.5.0-SNAPSHOT.jar`. The repository-local Maven cache keeps dependency resolution separate from other plugin projects being built on the same computer.
+To build Paper locally, select JDK 25 with `JAVA_HOME` and run `mvn -B -Dmaven.repo.local=.m2/repository clean verify`. This runs the regression tests and creates `target/WebhookIntegrations-Paper-5.5.0-SNAPSHOT.jar`. The repository-local Maven cache keeps dependency resolution separate from other plugin projects being built on the same computer. Forge has a separate Java 17 Gradle build under `forge/`.
 
 The LightweightClans compile dependency is pinned to the JAR checked into `local-maven/`; builds do not consume a neighboring repository's changing output. LightweightClans and PlaceholderAPI remain optional server plugins and are not bundled in the release JAR. Existing configuration files, commands, Discord message templates, and the clans webhook payload contract are preserved.
 

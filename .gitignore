@@ -113,5 +113,8 @@ buildNumber.properties
 
 # Common working directory
 run/
+.gradle/
+forge/build/
+!forge/gradle/wrapper/gradle-wrapper.jar
 
 !local-maven/**/*.jar
