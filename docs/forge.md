@@ -29,9 +29,9 @@ For example, add `"welcome": {"content": "Welcome to $serverMotd$!"}` inside `te
 
 ## Differences from Paper
 
-Forge uses its own JSON configuration; Paper YAML files are not automatically imported. Copy webhook targets and adapt event JSON manually. Bukkit permissions, PlaceholderAPI, LightweightClans, vanished-player metadata, join/leave debounce, YAML globals/parameterized templates, custom HTTP headers, language files, and the automatic JAR updater are Paper features. `requireOperator` provides a per-event operator restriction in Forge. Download Forge updates from GitHub and replace the old JAR while the server is stopped.
+Forge uses its own JSON configuration; Paper YAML files are not automatically imported. Copy webhook targets and adapt event JSON manually. Bukkit permissions, PlaceholderAPI, LightweightClans, vanished-player metadata, join/leave debounce, YAML globals/parameterized templates, language files, and the automatic JAR updater are Paper features. `requireOperator` provides a per-event operator restriction in Forge. Download Forge updates from GitHub and replace the old JAR while the server is stopped.
 
-The existing LightweightClans dependency exposes Bukkit services/events and cannot load on Forge. The clans webhook bridge remains available in the Paper edition.
+The existing LightweightClans dependency exposes Bukkit services/events and cannot load on Forge. The Paper clans bridge remains available in the Paper edition. On Forge, use LightweightClans 1.1.1-kncraft.1 or later, which signs and sends its own database snapshots; no Bukkit service bridge is needed.
 
 ## Build
 
@@ -40,3 +40,9 @@ With JDK 17 selected, run `cd forge` then `./gradlew build` (Windows: `gradlew.b
 Paper is built separately from the repository root with JDK 25 and Maven. CI tests/builds both and publishes both assets in the same GitHub release. Root `filename`, `downloadurl`, and `buildnumber` remain Paper-compatible for installed auto-updaters; `releases/paper/` and `releases/forge/` provide explicit platform metadata.
 
 CI also installs a disposable dedicated Forge server and runs `forge/scripts/smoke_test.py` against the packaged JAR. This verifies loading, start/stop delivery, admin commands, templates, enable/disable, and invalid reload recovery against a local HTTP receiver. Unit tests cover JSON safety, configuration, and HTTP retry behavior. Player-triggered events still need multiplayer gameplay testing.
+
+## Authenticated website activity (5.6.1-kncraft.1)
+
+Each event now accepts a `headers` object containing `X-Webhook-Token` and optionally `X-Minecraft-Server`. Set the former to the website's `KNC_PLAYER_ACTIVITY_WEBHOOK` value and the latter to `kncraft`. These headers are sent on every retry. They are never added to other events or manual Discord messages. HTTP redirects are not followed.
+
+Use `config/webhookintegrations.json`, not the Paper YAML. An activity `message` must be an object with `type` (`join`, `leave`, `death`, `advancement`), `playerName: "$rawUsername$"`, `playerUuid: "$uuid$"`, and `timestamp: "$timestamp$"`. Forge substitutes a full UTC instant. Set `webhooks.main` to `https://beautyinblocks.com/api/kncraft/server-events`. Keep chat, start/stop and player-count events disabled for this endpoint. `/wi reload` applies JSON changes; installing the updated JAR requires a server restart. Never enter tokens into commands or paste them into logs.

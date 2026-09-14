@@ -74,6 +74,35 @@ class WebhookTest {
         } finally { server.stop(0); }
     }
 
+    @Test void sendsConfiguredAuthenticationOnEveryRetryWithoutLeakingHeaders() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        List<String> tokens = new CopyOnWriteArrayList<>();
+        List<String> labels = new CopyOnWriteArrayList<>();
+        server.createContext("/hook", exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            tokens.add(exchange.getRequestHeaders().getFirst("X-Webhook-Token"));
+            labels.add(exchange.getRequestHeaders().getFirst("X-Minecraft-Server"));
+            exchange.sendResponseHeaders(tokens.size() == 1 ? 503 : 204, -1); exchange.close();
+        });
+        server.start();
+        try (var sender = new WebhookSender(message -> fail(message))) {
+            sender.send("http://127.0.0.1:" + server.getAddress().getPort() + "/hook", "{}",
+                Map.of("X-Webhook-Token", "test-only-key", "X-Minecraft-Server", "kncraft"));
+        } finally { server.stop(0); }
+        assertEquals(List.of("test-only-key", "test-only-key"), tokens);
+        assertEquals(List.of("kncraft", "kncraft"), labels);
+        var template = new JsonObject(); template.addProperty("type", "join"); template.addProperty("playerName", "$rawUsername$");
+        template.addProperty("timestamp", "$timestamp$"); template.addProperty("serverId", "kncraft");
+        Path fixture = Path.of("build/webhook-contract/activity.json"); Files.createDirectories(fixture.getParent());
+        Files.writeString(fixture, MessageRenderer.payload(template, Map.of("rawUsername", "ContractPlayer", "timestamp", java.time.Instant.now().toString())));
+        var config = new WebhookConfig();
+        config.events.get("onPlayerJoin").headers.put("X-Webhook-Token", "test-only-key");
+        Path path = directory.resolve("headers.json"); config.save(path);
+        assertEquals("test-only-key", WebhookConfig.load(path).events.get("onPlayerJoin").headers.get("X-Webhook-Token"));
+        config.events.get("onPlayerJoin").headers.put("Host", "other.example"); config.save(path);
+        assertThrows(java.io.IOException.class, () -> WebhookConfig.load(path));
+    }
+
     @Test void permanentHttpErrorsAreNotRetriedAndClosedSenderRejectsWork() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         AtomicInteger requests = new AtomicInteger();

@@ -18,6 +18,7 @@ public final class WebhookConfig {
     public Map<String, JsonObject> templates = new LinkedHashMap<>();
 
     public static final class EventMessage {
+        public Map<String, String> headers = new LinkedHashMap<>();
         public boolean announce = true;
         public String target = "main";
         public boolean requireOperator = false;
@@ -58,6 +59,14 @@ public final class WebhookConfig {
             config.events.forEach((name, event) -> {
                 if (event == null || event.target == null || event.message == null)
                     throw new IllegalArgumentException("Invalid event: " + name);
+                if (event.headers == null) throw new IllegalArgumentException("Missing event headers");
+                var probe = java.net.http.HttpRequest.newBuilder(java.net.URI.create("https://example.com"));
+                event.headers.forEach((key, value) -> {
+                    if (key == null || value == null || value.isBlank()) throw new IllegalArgumentException("Invalid header");
+                    if (!key.equalsIgnoreCase("X-Webhook-Token") && !key.equalsIgnoreCase("X-Minecraft-Server"))
+                        throw new IllegalArgumentException("Unsupported event header");
+                    probe.header(key, value);
+                });
             });
             config.censoring.forEach((key, value) -> { if (value == null) throw new IllegalArgumentException("Null censor replacement"); });
             config.templates.forEach((key, value) -> { if (value == null) throw new IllegalArgumentException("Null template"); });

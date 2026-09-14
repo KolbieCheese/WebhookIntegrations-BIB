@@ -119,7 +119,7 @@ public final class WebhookIntegrationsForge {
         if (message == null || !message.announce || (player != null && message.requireOperator && !player.hasPermissions(2))) return;
         var values = values(player);
         values.putAll(extra);
-        sender.send(config.webhooks.get(message.target), MessageRenderer.payload(message.message, values));
+        sender.send(config.webhooks.get(message.target), MessageRenderer.payload(message.message, values), message.headers);
     }
 
     @SubscribeEvent public void commands(RegisterCommandsEvent event) {
